@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check/List Go</title>
+
+<style>
+:root{
+  --bg:#0f172a;
+  --card:rgba(255,255,255,0.05);
+  --text:#fff;
+  --primary:#3b82f6;
+}
+
+body.light{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#111;
+}
+
+body{
+  margin:0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* HEADER */
+header{
+  display:none;
+  padding:18px;
+  font-size:20px;
+  font-weight:bold;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:white;
+}
+
+/* CONTENEDOR */
+.container{
+  padding:18px;
+  padding-bottom:120px;
+}
+
+/* CARDS */
+.item{
+  backdrop-filter: blur(12px);
+  background: var(--card);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  transition:0.2s;
+}
+
+.item:active{
+  transform:scale(0.97);
+}
+
+/* INPUTS */
+input,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+
+/* NAV */
+.bottom-nav{
+  display:none;
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(10px);
+  padding:10px;
+}
+
+.bottom-nav button{
+  background:none;
+  border:none;
+  font-size:20px;
+  color:var(--text);
+}
+
+/* FAB */
+.fab{
+  display:none;
+  position:fixed;
+  right:20px;
+  bottom:80px;
+}
+
+.btn{
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  color:white;
+  font-size:30px;
+  border:none;
+  box-shadow:0 10px 25px rgba(59,130,246,0.4);
+  transition:0.2s;
+}
+
+.btn:active{
+  transform:scale(0.9);
+}
+
+/* CHECK */
+.estado{
+  width:22px;
+  height:22px;
+  border-radius:6px;
+  border:2px solid #888;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:5px;
+}
+
+.estado.ok{
+  background:#22c55e;
+  border:none;
+  color:white;
+  font-size:14px;
+}
+
+.estado.ok::after{
+  content:"✓";
+}
+
+/* PROGRESS */
+.progress{
+  background:#1f2937;
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px 0;
+}
+
+.progress-bar{
+  height:10px;
+  background:linear-gradient(90deg,#22c55e,#4ade80);
+  transition:0.3s;
+}
+
+/* POPUP */
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.6);
+}
+
+.popup-content{
+  background:#1e293b;
+  padding:20px;
+  border-radius:20px;
+  width:80%;
+}
+
+.popup-content button{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border:none;
+  border-radius:10px;
+}
+
+/* TITLES */
+h2{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+h3{
+  font-size:18px;
+  opacity:0.85;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
+  <h2>Check/List Go</h2>
+  <button onclick="login()" style="padding:15px 25px;border:none;border-radius:10px;background:#3b82f6;color:white;">
+    Iniciar sesión con Google
+  </button>
+</div>
+
+<!-- IDIOMA -->
+<div id="idiomaScreen" style="display:none;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
+  <h2>Idioma 🌎</h2>
+  <button onclick="setIdioma('es')">Español</button>
+  <button onclick="setIdioma('en')">English</button>
+</div>
+
+<header id="header">Check/List Go</header>
+
+<div id="app" class="container"></div>
+
+<div class="fab">
+<button class="btn" onclick="accionPrincipal()">+</button>
+</div>
+
+<div class="bottom-nav">
+<button onclick="irInicio()">🏠</button>
+<button onclick="irListas()">📦</button>
+<button onclick="irChecklist()">✅</button>
+<button onclick="verReportes()">⚙️</button>
+<button onclick="cambiarTema()">🌙</button>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none">
+
+<div id="shareMenu" class="popup">
+  <div class="popup-content">
+    <button onclick="shareWhatsApp()">WhatsApp</button>
+    <button onclick="copiarLink()">Copiar link</button>
+    <button onclick="cerrarShare()">Cerrar</button>
+  </div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "AIzaSyD3CXHTzo5LE95MIREYXfrumsFZ7sNJL0E",
+  authDomain: "inventario-app-857a0.firebaseapp.com",
+  projectId: "inventario-app-857a0",
+  storageBucket: "inventario-app-857a0.firebasestorage.app",
+  messagingSenderId: "38017929270",
+  appId: "1:38017929270:web:d43a2c28604b6a2156c897"
+};
+
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+
+/* AUTH */
+const auth = getAuth(appFirebase);
+const provider = new GoogleAuthProvider();
+let user=null;
+
+window.login=()=>signInWithPopup(auth, provider);
+
+onAuthStateChanged(auth, u=>{
+  if(u){
+    user=u;
+    loginScreen.style.display="none";
+
+    let saved=localStorage.getItem("idioma");
+    if(saved){
+      idioma=saved;
+      iniciarApp();
+    }else{
+      idiomaScreen.style.display="flex";
+    }
+  }
+});
+
+window.setIdioma=(lang)=>{
+  idioma=lang;
+  localStorage.setItem("idioma", lang);
+  idiomaScreen.style.display="none";
+  iniciarApp();
+};
+
+function iniciarApp(){
+  header.style.display="block";
+  app.style.display="block";
+  document.querySelector(".fab").style.display="block";
+  document.querySelector(".bottom-nav").style.display="flex";
+  cargarDatos();
+}
+
+/* VARIABLES */
+let vista="inicio";
+let listas=[];
+let checklist=[];
+let listaActual=null;
+let checklistActual=null;
+let idioma="es";
+let reportes=[];
+let modoFill=location.hash.includes("modo=fill");
+
+/* DATA */
+function cargarDatos(){
+  onSnapshot(collection(db,"listas"),snap=>{
+    listas=[]; snap.forEach(d=>listas.push(d.data()));
+    render();
+  });
+
+  onSnapshot(collection(db,"checklist"),snap=>{
+    checklist=[]; snap.forEach(d=>checklist.push(d.data()));
+    render();
+  });
+}
+
+/* NAV */
+window.irInicio=()=>{vista="inicio";render();}
+window.irListas=()=>{vista="listas";render();}
+window.irChecklist=()=>{vista="checklist";render();}
+window.cambiarTema=()=>document.body.classList.toggle("light");
+
+/* CREAR */
+window.accionPrincipal=async()=>{
+  if(vista==="listas"){
+    if(!confirm("¿Crear lista?"))return;
+    let n=prompt("Nombre lista"); if(!n)return;
+    let id=Date.now()+"";
+    await setDoc(doc(db,"listas",id),{id,nombre:n,articulos:[]});
+  }
+
+  if(vista==="checklist"){
+    if(!confirm("¿Crear checklist?"))return;
+    let n=prompt("Nombre"); if(!n)return;
+    let id=Date.now()+"";
+    await setDoc(doc(db,"checklist",id),{id,nombre:n,preguntas:[]});
+  }
+};
+
+/* CHECKLIST */
+window.agregarPregunta=async()=>{
+  if(!confirm("¿Agregar pregunta?"))return;
+  checklistActual.preguntas.push({texto:"",ok:false});
+  await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
+};
+
+window.confirmarCheck=async(i)=>{
+  if(!confirm("¿Confirmar tarea?"))return;
+  checklistActual.preguntas[i].ok=!checklistActual.preguntas[i].ok;
+  await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
+};
+
+/* FOTO */
+let fotoTempIndex=null;
+
+window.abrirFotoGlobal=()=>{
+  fotoTempIndex = checklistActual.preguntas.length-1;
+  fileInput.click();
+};
+
+fileInput.addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    checklistActual.preguntas.push({
+      texto:"Foto",
+      ok:false,
+      img:r.result
+    });
+    await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
+  };
+  r.readAsDataURL(f);
+});
+
+/* SHARE */
+window.abrirCompartir=()=>shareMenu.style.display="flex";
+window.cerrarShare=()=>shareMenu.style.display="none";
+
+function linkLista(){return location.origin+location.pathname+"#lista="+listaActual.id+"&modo=fill";}
+function linkCheck(){return location.origin+location.pathname+"#check="+checklistActual.id+"&modo=fill";}
+
+window.shareWhatsApp=()=>window.open("https://wa.me/?text="+encodeURIComponent(vista==="detalle"?linkLista():linkCheck()));
+window.copiarLink=()=>navigator.clipboard.writeText(vista==="detalle"?linkLista():linkCheck());
+
+/* RENDER */
+function render(){
+
+let html="";
+
+if(vista==="inicio"){
+html+=`
+<h2>Bienvenido</h2>
+<div class="item" onclick="irListas()">📦 Inventario</div>
+<div class="item" onclick="irChecklist()">✅ Checklists</div>
+`;
+}
+
+if(vista==="listas"){
+listas.forEach((l,i)=>{
+html+=`<div class="item" onclick="listaActual=listas[${i}];vista='detalle';render()">${l.nombre}</div>`;
+});
+}
+
+if(vista==="detalle"){
+html+=`<h3>${listaActual.nombre}</h3>`;
+listaActual.articulos.forEach(a=>{
+html+=`<div class="item">${a.nombre} - ${a.cantidad}</div>`;
+});
+}
+
+if(vista==="checklist"){
+checklist.forEach((c,i)=>{
+html+=`<div class="item" onclick="checklistActual=checklist[${i}];vista='detalleChecklist';render()">${c.nombre}</div>`;
+});
+}
+
+if(vista==="detalleChecklist"){
+
+html+=`<h3>${checklistActual.nombre}</h3>`;
+
+let total=checklistActual.preguntas.length;
+let hechas=checklistActual.preguntas.filter(p=>p.ok).length;
+let progreso=total?(hechas/total)*100:0;
+
+html+=`
+<div class="progress">
+  <div class="progress-bar" style="width:${progreso}%;"></div>
+</div>
+<p>${hechas}/${total}</p>
+`;
+
+checklistActual.preguntas.forEach((p,i)=>{
+html+=`
+<div class="item">
+<div onclick="confirmarCheck(${i})" class="estado ${p.ok?'ok':'no'}"></div>
+<textarea>${p.texto}</textarea>
+${p.img?`<img src="${p.img}" width="100%" style="border-radius:12px;margin-top:5px;">`:""}
+</div>`;
+});
+
+html+=`<button onclick="agregarPregunta()">➕</button>`;
+html+=`<button onclick="abrirFotoGlobal()">📷</button>`;
+html+=`<button onclick="abrirCompartir()">Compartir</button>`;
+}
+
+app.innerHTML=html;
+
+}
+
+</script>
+</body>
+</html>
