@@ -1,451 +1,208 @@
-60px<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Check/List Go</title>
+<title>Inventario PRO</title>
 
 <style>
-:root{
-  --bg:#0f172a;
-  --card:rgba(255,255,255,0.05);
-  --text:#fff;
-  --primary:#3b82f6;
-}
+body { font-family: Arial; margin:0; background:#f5f5f5; }
+header { background:#000; color:#fff; padding:15px; text-align:center; }
+.container { padding:15px; }
 
-body.light{
-  --bg:#f1f5f9;
-  --card:#ffffff;
-  --text:#111;
-}
-
-body{
-  margin:0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* HEADER */
-header{
-  display:none;
-  padding:18px;
-  font-size:20px;
-  font-weight:bold;
-  background:linear-gradient(135deg,#3b82f6,#2563eb);
-  color:white;
-}
-
-/* CONTENEDOR */
-.container{
-  padding:18px;
-  padding-bottom:120px;
-}
-
-/* CARDS */
-.item{
-  backdrop-filter: blur(12px);
-  background: var(--card);
-  border:1px solid rgba(255,255,255,0.08);
-  padding:18px;
-  border-radius:18px;
-  margin-bottom:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.25);
-  transition:0.2s;
-}
-
-.item:active{
-  transform:scale(0.97);
-}
-
-/* INPUTS */
-input,textarea{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border-radius:10px;
-  border:none;
-  outline:none;
-  font-size:14px;
-}
-
-/* NAV */
-.bottom-nav{
-  display:none;
-  position:fixed;
-  bottom:0;
-  width:100%;
+.item {
   display:flex;
-  justify-content:space-around;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(10px);
+  justify-content:space-between;
+  background:#fff;
+  margin:5px 0;
   padding:10px;
+  border-radius:8px;
 }
 
-.bottom-nav button{
-  background:none;
+input { padding:8px; font-size:14px; }
+.qty { width:60px; text-align:center; }
+
+button {
+  padding:10px;
+  margin:5px;
   border:none;
-  font-size:20px;
-  color:var(--text);
-}
-
-/* FAB */
-.fab{
-  display:none;
-  position:fixed;
-  right:20px;
-  bottom:80px;
-}
-
-.btn{
-  width:65px;
-  height:65px;
-  border-radius:50%;
-  background:linear-gradient(135deg,#3b82f6,#2563eb);
-  color:white;
-  font-size:30px;
-  border:none;
-  box-shadow:0 10px 25px rgba(59,130,246,0.4);
-  transition:0.2s;
-}
-
-.btn:active{
-  transform:scale(0.9);
-}
-
-/* CHECK */
-.estado{
-  width:22px;
-  height:22px;
   border-radius:6px;
-  border:2px solid #888;
-  display:inline-flex;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:5px;
+  cursor:pointer;
 }
 
-.estado.ok{
-  background:#22c55e;
-  border:none;
-  color:white;
-  font-size:14px;
-}
-
-.estado.ok::after{
-  content:"✓";
-}
-
-/* PROGRESS */
-.progress{
-  background:#1f2937;
-  border-radius:999px;
-  overflow:hidden;
-  margin:12px 0;
-}
-
-.progress-bar{
-  height:10px;
-  background:linear-gradient(90deg,#22c55e,#4ade80);
-  transition:0.3s;
-}
-
-/* POPUP */
-.popup{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.6);
-}
-
-.popup-content{
-  background:#1e293b;
-  padding:20px;
-  border-radius:20px;
-  width:80%;
-}
-
-.popup-content button{
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  border:none;
-  border-radius:10px;
-}
-
-/* TITLES */
-h2{
-  font-size:22px;
-  margin-bottom:10px;
-}
-
-h3{
-  font-size:18px;
-  opacity:0.85;
-}
+.green { background:green; color:white; }
+.black { background:black; color:white; }
+.red { background:red; color:white; }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
-  <h2>Check/List Go</h2>
-  <button onclick="login()" style="padding:15px 25px;border:none;border-radius:10px;background:#3b82f6;color:white;">
-  
-  </button>
-</div>
+<header>📦 Inventario PRO</header>
 
-<!-- IDIOMA -->
-<div id="idiomaScreen" style="display:none;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
-  <h2>Idioma 🌎</h2>
-  <button onclick="setIdioma('es')">Español</button>
-  <button onclick="setIdioma('en')">English</button>
-</div>
+<div class="container">
 
-<header id="header">Check/List Go</header>
+<h2>Lista</h2>
 
-<div id="app" class="container"></div>
+<div id="controls"></div>
+<div id="list"></div>
 
-<div class="fab">
-<button class="btn" onclick="accionPrincipal()">+</button>
-</div>
-
-<div class="bottom-nav">
-<button onclick="irInicio()">🏠</button>
-<button onclick="irListas()">📦</button>
-<button onclick="irChecklist()">✅</button>
-<button onclick="verReportes()">⚙️</button>
-<button onclick="cambiarTema()">🌙</button>
-</div>
-
-<input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none">
-
-<div id="shareMenu" class="popup">
-  <div class="popup-content">
-    <button onclick="shareWhatsApp()">WhatsApp</button>
-    <button onclick="copiarLink()">Copiar link</button>
-    <button onclick="cerrarShare()">Cerrar</button>
-  </div>
 </div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
+// 🔥 TU FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyBsTaAfbiYoe70_ekJ8r2uiJ7zfPT3CAwg",
-    authDomain: "inventario-v.firebaseapp.com",
-    projectId: "inventario-v",
-    storageBucket: "inventario-v.firebasestorage.app",
-    messagingSenderId: "1066060168140",
-    appId: "1:1066060168140:web:1c344698614c60efacbb69"
-  };
-
-
-const appFirebase = initializeApp(firebaseConfig);
-const db = getFirestore(appFirebase);
-
-/* AUTH */
-const auth = getAuth(appFirebase);
-const provider = new GoogleAuthProvider();
-let user=null;
-
-window.login=()=>signInWithPopup(auth, provider);
-
-onAuthStateChanged(auth, u=>{
-  if(u){
-    user=u;
-    loginScreen.style.display="none";
-
-    let saved=localStorage.getItem("idioma");
-    if(saved){
-      idioma=saved;
-      iniciarApp();
-    }else{
-      idiomaScreen.style.display="flex";
-    }
-  }
-});
-
-window.setIdioma=(lang)=>{
-  idioma=lang;
-  localStorage.setItem("idioma", lang);
-  idiomaScreen.style.display="none";
-  iniciarApp();
+  apiKey: "AIzaSyCVjGdI5Z3fW8bjHwfBgT5RoOfZZ4Vap8c",
+  authDomain: "checklistempresa.firebaseapp.com",
+  projectId: "checklistempresa",
+  storageBucket: "checklistempresa.firebasestorage.app",
+  messagingSenderId: "798095528680",
+  appId: "1:798095528680:web:3114c0b18d5b8001826f5d"
 };
 
-function iniciarApp(){
-  header.style.display="block";
-  app.style.display="block";
-  document.querySelector(".fab").style.display="block";
-  document.querySelector(".bottom-nav").style.display="flex";
-  cargarDatos();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// URL params
+const params = new URLSearchParams(window.location.search);
+let id = params.get("id");
+let editorKey = params.get("edit"); // 🔑 clave editor
+
+// crear ID si no existe
+if(!id){
+  id = Date.now().toString();
+  const key = Math.random().toString(36).substring(2,8);
+  window.location.search = `?id=${id}&edit=${key}`;
 }
 
-/* VARIABLES */
-let vista="inicio";
-let listas=[];
-let checklist=[];
-let listaActual=null;
-let checklistActual=null;
-let idioma="es";
-let reportes=[];
-let modoFill=location.hash.includes("modo=fill");
+const ref = doc(db, "listas", id);
 
-/* DATA */
-function cargarDatos(){
-  onSnapshot(collection(db,"listas"),snap=>{
-    listas=[]; snap.forEach(d=>listas.push(d.data()));
-    render();
-  });
+let items = [];
+let ownerKey = null;
 
-  onSnapshot(collection(db,"checklist"),snap=>{
-    checklist=[]; snap.forEach(d=>checklist.push(d.data()));
-    render();
+// crear lista inicial
+async function crearLista(){
+  const base = [
+    "Azúcar","Sal","Vasos 16 oz","Servilletas","Cucharas",
+    "Platos","Coca Cola","Sprite","Limón","Salsa Roja"
+  ].map(n => ({nombre:n, cantidad:0, fijo:true}));
+
+  // 🔥 6 espacios extras (editables SOLO nombre)
+  for(let i=0;i<6;i++){
+    base.push({nombre:"", cantidad:0, fijo:false});
+  }
+
+  await setDoc(ref, {
+    items: base,
+    editor: editorKey
   });
 }
 
-/* NAV */
-window.irInicio=()=>{vista="inicio";render();}
-window.irListas=()=>{vista="listas";render();}
-window.irChecklist=()=>{vista="checklist";render();}
-window.cambiarTema=()=>document.body.classList.toggle("light");
-
-/* CREAR */
-window.accionPrincipal=async()=>{
-  if(vista==="listas"){
-    if(!confirm("¿Crear lista?"))return;
-    let n=prompt("Nombre lista"); if(!n)return;
-    let id=Date.now()+"";
-    await setDoc(doc(db,"listas",id),{id,nombre:n,articulos:[]});
+// escuchar cambios
+onSnapshot(ref, (docSnap)=>{
+  if(docSnap.exists()){
+    const data = docSnap.data();
+    items = data.items;
+    ownerKey = data.editor;
+    render();
+  }else{
+    crearLista();
   }
-
-  if(vista==="checklist"){
-    if(!confirm("¿Crear checklist?"))return;
-    let n=prompt("Nombre"); if(!n)return;
-    let id=Date.now()+"";
-    await setDoc(doc(db,"checklist",id),{id,nombre:n,preguntas:[]});
-  }
-};
-
-/* CHECKLIST */
-window.agregarPregunta=async()=>{
-  if(!confirm("¿Agregar pregunta?"))return;
-  checklistActual.preguntas.push({texto:"",ok:false});
-  await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
-};
-
-window.confirmarCheck=async(i)=>{
-  if(!confirm("¿Confirmar tarea?"))return;
-  checklistActual.preguntas[i].ok=!checklistActual.preguntas[i].ok;
-  await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
-};
-
-/* FOTO */
-let fotoTempIndex=null;
-
-window.abrirFotoGlobal=()=>{
-  fotoTempIndex = checklistActual.preguntas.length-1;
-  fileInput.click();
-};
-
-fileInput.addEventListener("change",e=>{
-  const f=e.target.files[0]; if(!f)return;
-  const r=new FileReader();
-  r.onload=async()=>{
-    checklistActual.preguntas.push({
-      texto:"Foto",
-      ok:false,
-      img:r.result
-    });
-    await setDoc(doc(db,"checklist",checklistActual.id),checklistActual);
-  };
-  r.readAsDataURL(f);
 });
 
-/* SHARE */
-window.abrirCompartir=()=>shareMenu.style.display="flex";
-window.cerrarShare=()=>shareMenu.style.display="none";
+// verificar si es editor
+function esEditor(){
+  return editorKey && editorKey === ownerKey;
+}
 
-function linkLista(){return location.origin+location.pathname+"#lista="+listaActual.id+"&modo=fill";}
-function linkCheck(){return location.origin+location.pathname+"#check="+checklistActual.id+"&modo=fill";}
-
-window.shareWhatsApp=()=>window.open("https://wa.me/?text="+encodeURIComponent(vista==="detalle"?linkLista():linkCheck()));
-window.copiarLink=()=>navigator.clipboard.writeText(vista==="detalle"?linkLista():linkCheck());
-
-/* RENDER */
+// render
 function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-let html="";
+  items.forEach((item,i)=>{
+    const div = document.createElement("div");
+    div.className="item";
 
-if(vista==="inicio"){
-html+=`
-<h2>Bienvenido</h2>
-<div class="item" onclick="irListas()">📦 Inventario</div>
-<div class="item" onclick="irChecklist()">✅ Checklists</div>
+    // 👀 SOLO VER
+    if(!esEditor()){
+      div.innerHTML = `
+        <span>${item.nombre}</span>
+        <strong>${item.cantidad}</strong>
+      `;
+    }else{
+      // ✏️ EDITOR
+      if(item.fijo){
+        // solo puede cambiar cantidad
+        div.innerHTML = `
+          <span>${item.nombre}</span>
+          <input class="qty" type="number" min="0" max="99"
+            value="${item.cantidad}"
+            onchange="editCantidad(${i}, this.value)">
+        `;
+      }else{
+        // puede agregar nombre y cantidad
+        div.innerHTML = `
+          <input placeholder="Nuevo artículo"
+            value="${item.nombre}"
+            onchange="editNombre(${i}, this.value)">
+          
+          <input class="qty" type="number" min="0" max="99"
+            value="${item.cantidad}"
+            onchange="editCantidad(${i}, this.value)">
+        `;
+      }
+    }
+
+    list.appendChild(div);
+  });
+}
+
+// editar nombre
+window.editNombre = async (i,val)=>{
+  if(!esEditor()) return;
+  items[i].nombre = val;
+  await setDoc(ref,{items, editor:ownerKey});
+}
+
+// editar cantidad
+window.editCantidad = async (i,val)=>{
+  if(!esEditor()) return;
+  val = parseInt(val)||0;
+  if(val>99) val=99;
+  items[i].cantidad = val;
+  await setDoc(ref,{items, editor:ownerKey});
+}
+
+// compartir editor
+function compartir(){
+  const url = window.location.origin + window.location.pathname + `?id=${id}&edit=${ownerKey}`;
+
+  if(navigator.share){
+    navigator.share({title:"Inventario", url});
+  }else{
+    prompt("Link editor:", url);
+  }
+}
+
+// compartir solo ver
+function ver(){
+  const url = window.location.origin + window.location.pathname + `?id=${id}`;
+  window.open(url,"_blank");
+}
+
+// botones
+const controls = document.getElementById("controls");
+
+controls.innerHTML = `
+  <button class="green" onclick="compartir()">📤 Enviar a editor</button>
+  <button class="black" onclick="ver()">👀 Solo ver</button>
 `;
-}
-
-if(vista==="listas"){
-listas.forEach((l,i)=>{
-html+=`<div class="item" onclick="listaActual=listas[${i}];vista='detalle';render()">${l.nombre}</div>`;
-});
-}
-
-if(vista==="detalle"){
-html+=`<h3>${listaActual.nombre}</h3>`;
-listaActual.articulos.forEach(a=>{
-html+=`<div class="item">${a.nombre} - ${a.cantidad}</div>`;
-});
-}
-
-if(vista==="checklist"){
-checklist.forEach((c,i)=>{
-html+=`<div class="item" onclick="checklistActual=checklist[${i}];vista='detalleChecklist';render()">${c.nombre}</div>`;
-});
-}
-
-if(vista==="detalleChecklist"){
-
-html+=`<h3>${checklistActual.nombre}</h3>`;
-
-let total=checklistActual.preguntas.length;
-let hechas=checklistActual.preguntas.filter(p=>p.ok).length;
-let progreso=total?(hechas/total)*100:0;
-
-html+=`
-<div class="progress">
-  <div class="progress-bar" style="width:${progreso}%;"></div>
-</div>
-<p>${hechas}/${total}</p>
-`;
-
-checklistActual.preguntas.forEach((p,i)=>{
-html+=`
-<div class="item">
-<div onclick="confirmarCheck(${i})" class="estado ${p.ok?'ok':'no'}"></div>
-<textarea>${p.texto}</textarea>
-${p.img?`<img src="${p.img}" width="100%" style="border-radius:12px;margin-top:5px;">`:""}
-</div>`;
-});
-
-html+=`<button onclick="agregarPregunta()">➕</button>`;
-html+=`<button onclick="abrirFotoGlobal()">📷</button>`;
-html+=`<button onclick="abrirCompartir()">Compartir</button>`;
-}
-
-app.innerHTML=html;
-
-}
 
 </script>
+
 </body>
 </html>
